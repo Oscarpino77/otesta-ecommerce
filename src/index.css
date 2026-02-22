@@ -1,0 +1,35 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+html { scroll-behavior: smooth; }
+body { @apply bg-background text-primary font-sans; }
+h1, h2, h3, h4, h5, h6 { @apply font-serif font-500 tracking-wide; }
+h1 { @apply text-5xl md:text-6xl; }
+h2 { @apply text-4xl md:text-5xl; }
+h3 { @apply text-3xl md:text-4xl; }
+h4 { @apply text-2xl; }
+h5 { @apply text-xl; }
+h6 { @apply text-lg; }
+.uppercase-tracking { @apply uppercase tracking-wider; }
+.btn-primary { @apply px-6 py-3 bg-primary text-white rounded transition-colors duration-300 hover:opacity-90; }
+.btn-secondary { @apply px-6 py-3 bg-accent text-primary rounded transition-colors duration-300 hover:opacity-90; }
+.btn-outline { @apply px-6 py-3 border border-primary text-primary rounded transition-colors duration-300 hover:bg-primary hover:text-white; }
+.card { @apply bg-white rounded-lg shadow-sm transition-transform duration-300; }
+.card-hover { @apply card hover:shadow-lg hover:scale-105; }
+.aspect-3-4 { @apply aspect-[3/4]; }
+a { @apply transition-colors duration-300; }
+input, textarea, select { @apply transition-colors duration-300; }
+input:focus, textarea:focus, select:focus { @apply outline-none ring-2 ring-accent; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+.animate-fade-in { animation: fadeIn 0.5s ease-out; }
+.animate-slide-up { animation: slideUp 0.5s ease-out; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { @apply bg-background-alt; }
+::-webkit-scrollbar-thumb { @apply bg-border rounded-full; }
+::-webkit-scrollbar-thumb:hover { @apply bg-text-muted; }
+.grid-cols-auto-fit { @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4; }
+.section-padding { @apply py-12 md:py-16 lg:py-20; }
+.container { @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8; }
+.gradient-overlay { @apply absolute inset-0 bg-gradient-to-t from-black/60 to-transparent; }
