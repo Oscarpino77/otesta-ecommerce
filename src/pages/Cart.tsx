@@ -55,7 +55,7 @@ export default function Cart() {
         {/* Cart Items */}
         <div className="lg:col-span-2">
           {cartItems.map((item) => (
-            {/* @ts-ignore */}
+            // @ts-ignore
             <motion.div
               key={item.id}
               initial={{ opacity: 0 }}
