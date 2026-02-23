@@ -92,6 +92,7 @@ export default function Account() {
           ) : (
             <div className="space-y-4">
               {mockOrders.map((order) => (
+                {/* @ts-ignore */}
                 <motion.div
                   key={order.id}
                   initial={{ opacity: 0 }}

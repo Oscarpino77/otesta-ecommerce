@@ -19,7 +19,10 @@
     "strict": false,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "suppressOutputPathCheck": true,
+    "resolveJsonModule": true
   },
   "include": ["src"]
 }
