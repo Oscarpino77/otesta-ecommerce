@@ -40,11 +40,6 @@ export default function Layout() {
             <Link to="/Shop" className="text-sm hover:text-accent transition">
               Negozio
             </Link>
-            {user?.email === 'demo@otesta.it' && (
-              <Link to="/AdminDashboard" className="text-sm text-accent font-600 hover:opacity-80 transition">
-                Admin
-              </Link>
-            )}
           </nav>
 
           {/* Icons */}
@@ -88,11 +83,6 @@ export default function Layout() {
             <Link to="/Account" className="block text-sm hover:text-accent" onClick={() => setMobileMenuOpen(false)}>
               Account
             </Link>
-            {user?.email === 'demo@otesta.it' && (
-              <Link to="/AdminDashboard" className="block text-sm text-accent font-600 hover:opacity-80" onClick={() => setMobileMenuOpen(false)}>
-                Admin Dashboard
-              </Link>
-            )}
             {!user && (
               <button onClick={() => { handleLogin(); setMobileMenuOpen(false); }} className="block w-full text-left text-sm hover:text-accent">
                 Accedi
@@ -134,7 +124,7 @@ export default function Layout() {
                 <li><Link to="/Shop" className="hover:text-accent transition">Negozio</Link></li>
                 <li><Link to="/Cart" className="hover:text-accent transition">Carrello</Link></li>
                 <li><Link to="/Wishlist" className="hover:text-accent transition">Preferiti</Link></li>
-                <li><Link to="/AdminDashboard" className="hover:text-accent transition">Admin</Link></li>
+                <li><Link to="/admin/login" className="hover:text-accent transition">Area Admin</Link></li>
               </ul>
             </div>
 
