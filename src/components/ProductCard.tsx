@@ -23,6 +23,8 @@ export default function ProductCard({
 
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault()
+    e.stopPropagation()
+    
     if (!product.in_stock) {
       alert('Prodotto esaurito')
       return
@@ -33,12 +35,18 @@ export default function ProductCard({
       name: product.name,
       price: product.price,
       quantity: 1,
+      size: undefined,
       image: product.image_url,
     }
 
-    addToCart(cartItem)
-    setAddedNotif(true)
-    setTimeout(() => setAddedNotif(false), 2000)
+    try {
+      addToCart(cartItem)
+      setAddedNotif(true)
+      setTimeout(() => setAddedNotif(false), 2000)
+    } catch (error) {
+      console.error('Errore nell\'aggiunta al carrello:', error)
+      alert('Errore nell\'aggiunta al carrello')
+    }
   }
 
   return (
@@ -68,16 +76,17 @@ export default function ProductCard({
           )}
 
           {/* Hover Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl flex flex-col items-between justify-between p-4">
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl flex flex-col items-between justify-between p-4 pointer-events-none group-hover:pointer-events-auto">
             {/* Heart Button */}
             <motion.button
               onClick={(e) => {
                 e.preventDefault()
+                e.stopPropagation()
                 onWishlistToggle?.(product.id)
               }}
               whileHover={{ scale: 1.2 }}
               whileTap={{ scale: 0.9 }}
-              className="p-3 bg-white/90 rounded-full shadow-lg hover:bg-white transition-all duration-200 self-end"
+              className="p-3 bg-white/90 rounded-full shadow-lg hover:bg-white transition-all duration-200 self-end cursor-pointer"
             >
               <Heart
                 className={`w-6 h-6 transition ${isWishlisted ? 'fill-red-500 text-red-500' : 'text-gray-400 group-hover:text-gray-600'}`}
@@ -85,13 +94,13 @@ export default function ProductCard({
             </motion.button>
 
             {/* Bottom Action Buttons */}
-            <div className="flex gap-2 justify-between w-full">
+            <div className="flex gap-2 justify-between w-full pointer-events-auto">
               {/* Add to Cart Button */}
               <motion.button
                 onClick={handleQuickAdd}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-accent to-yellow-500 text-primary px-3 py-2 rounded-full font-bold text-sm hover:shadow-lg transition-all duration-200"
+                className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-accent to-yellow-500 text-primary px-3 py-2 rounded-full font-bold text-sm hover:shadow-lg transition-all duration-200 cursor-pointer z-10"
               >
                 <ShoppingBag className="w-4 h-4" />
                 Aggiungi
@@ -100,9 +109,9 @@ export default function ProductCard({
               {/* Quick View Button */}
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
-                className="group-hover:opacity-100 opacity-0 transition-opacity duration-300"
+                className="group-hover:opacity-100 opacity-0 transition-opacity duration-300 pointer-events-auto"
               >
-                <button className="flex items-center justify-center gap-1 bg-white/90 text-primary px-3 py-2 rounded-full font-semibold text-sm hover:bg-white transition-colors duration-200">
+                <button className="flex items-center justify-center gap-1 bg-white/90 text-primary px-3 py-2 rounded-full font-semibold text-sm hover:bg-white transition-colors duration-200 cursor-pointer">
                   <Eye className="w-4 h-4" />
                   Dettagli
                 </button>
