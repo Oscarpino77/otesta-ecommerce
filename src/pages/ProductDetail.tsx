@@ -3,12 +3,14 @@ import { useSearchParams, Link, useNavigate } from 'react-router-dom'
 import { Heart, ArrowLeft } from 'lucide-react'
 import { motion } from 'framer-motion'
 import SizeSelector from '@/components/SizeSelector'
+import { useCart } from '@/hooks/useCart'
 import { mockProducts } from '@/data/products'
 import { formatCurrency, CATEGORY_LABELS } from '@/lib/utils'
 
 export default function ProductDetail() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
+  const { addToCart } = useCart()
   const productId = searchParams.get('id')
   const [selectedSize, setSelectedSize] = useState<string>('')
   const [quantity, setQuantity] = useState(1)
@@ -35,21 +37,7 @@ export default function ProductDetail() {
       image: product.image_url,
     }
 
-    // Get existing cart from localStorage
-    const existingCart = JSON.parse(localStorage.getItem('cart') || '[]')
-    
-    // Check if item already in cart
-    const existingItem = existingCart.find(
-      (item: any) => item.id === cartItem.id && item.size === cartItem.size
-    )
-    
-    if (existingItem) {
-      existingItem.quantity += cartItem.quantity
-    } else {
-      existingCart.push(cartItem)
-    }
-
-    localStorage.setItem('cart', JSON.stringify(existingCart))
+    addToCart(cartItem)
     alert(`✓ ${quantity} ${product.name} aggiunto al carrello!`)
     setQuantity(1)
     setSelectedSize('')

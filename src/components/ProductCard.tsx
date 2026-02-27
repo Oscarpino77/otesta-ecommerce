@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Heart, Eye } from 'lucide-react'
+import { Heart, Eye, ShoppingBag } from 'lucide-react'
 import { motion } from 'framer-motion'
 import type { Product } from '@/types'
+import { useCart } from '@/hooks/useCart'
 import { formatCurrency } from '@/lib/utils'
 import { CATEGORY_LABELS } from '@/lib/utils'
 
@@ -16,6 +18,29 @@ export default function ProductCard({
   isWishlisted = false,
   onWishlistToggle,
 }: ProductCardProps) {
+  const { addToCart } = useCart()
+  const [addedNotif, setAddedNotif] = useState(false)
+
+  const handleQuickAdd = (e: React.MouseEvent) => {
+    e.preventDefault()
+    if (!product.in_stock) {
+      alert('Prodotto esaurito')
+      return
+    }
+    
+    const cartItem = {
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      quantity: 1,
+      image: product.image_url,
+    }
+
+    addToCart(cartItem)
+    setAddedNotif(true)
+    setTimeout(() => setAddedNotif(false), 2000)
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -43,7 +68,7 @@ export default function ProductCard({
           )}
 
           {/* Hover Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl flex flex-col items-end justify-between p-4">
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl flex flex-col items-between justify-between p-4">
             {/* Heart Button */}
             <motion.button
               onClick={(e) => {
@@ -52,23 +77,37 @@ export default function ProductCard({
               }}
               whileHover={{ scale: 1.2 }}
               whileTap={{ scale: 0.9 }}
-              className="p-3 bg-white/90 rounded-full shadow-lg hover:bg-white transition-all duration-200"
+              className="p-3 bg-white/90 rounded-full shadow-lg hover:bg-white transition-all duration-200 self-end"
             >
               <Heart
                 className={`w-6 h-6 transition ${isWishlisted ? 'fill-red-500 text-red-500' : 'text-gray-400 group-hover:text-gray-600'}`}
               />
             </motion.button>
 
-            {/* Quick View Button */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              className="group-hover:opacity-100 opacity-0 transition-opacity duration-300"
-            >
-              <button className="flex items-center gap-2 bg-accent text-primary px-4 py-2 rounded-full font-semibold text-sm hover:bg-yellow-500 transition-colors duration-200">
-                <Eye className="w-4 h-4" />
-                Visualizza
-              </button>
-            </motion.div>
+            {/* Bottom Action Buttons */}
+            <div className="flex gap-2 justify-between w-full">
+              {/* Add to Cart Button */}
+              <motion.button
+                onClick={handleQuickAdd}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-accent to-yellow-500 text-primary px-3 py-2 rounded-full font-bold text-sm hover:shadow-lg transition-all duration-200"
+              >
+                <ShoppingBag className="w-4 h-4" />
+                Aggiungi
+              </motion.button>
+
+              {/* Quick View Button */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                className="group-hover:opacity-100 opacity-0 transition-opacity duration-300"
+              >
+                <button className="flex items-center justify-center gap-1 bg-white/90 text-primary px-3 py-2 rounded-full font-semibold text-sm hover:bg-white transition-colors duration-200">
+                  <Eye className="w-4 h-4" />
+                  Dettagli
+                </button>
+              </motion.div>
+            </div>
           </div>
 
           {/* Badge Nuovo */}

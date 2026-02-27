@@ -2,12 +2,14 @@ import { Outlet, Link, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { Menu, X, Heart, ShoppingBag, User, Lock } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
+import { useCart } from '@/hooks/useCart'
 import ChatWidget from '@/components/ChatWidget'
 import { motion } from 'framer-motion'
 
 export default function Layout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const { user, login } = useAuth()
+  const { cartCount } = useCart()
   const navigate = useNavigate()
 
   const handleLogin = () => {
@@ -62,7 +64,11 @@ export default function Layout() {
             <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
               <Link to="/Cart" className="hover:text-accent transition relative group p-2 rounded-lg hover:bg-gray-100" title="Carrello">
                 <ShoppingBag className="w-5 h-5" />
-                <span className="absolute -top-1 -right-1 bg-accent text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold">0</span>
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-accent text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold text-xs">
+                    {cartCount}
+                  </span>
+                )}
               </Link>
             </motion.div>
             

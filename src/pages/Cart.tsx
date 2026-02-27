@@ -1,49 +1,17 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ShoppingBag, Trash2 } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
-
-interface CartItem {
-  id: string
-  name: string
-  image: string
-  price: number
-  size?: string
-  quantity: number
-}
+import { useCart } from '@/hooks/useCart'
 
 export default function Cart() {
-  const [cartItems, setCartItems] = useState<CartItem[]>([])
+  const { cart, removeFromCart, updateQuantity, clearCart, totalPrice } = useCart()
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     notes: '',
   })
-
-  useEffect(() => {
-    // Load cart from localStorage
-    const savedCart = JSON.parse(localStorage.getItem('cart') || '[]')
-    setCartItems(savedCart)
-  }, [])
-
-  const handleRemoveItem = (id: string, size?: string) => {
-    const updated = cartItems.filter(item => !(item.id === id && item.size === size))
-    setCartItems(updated)
-    localStorage.setItem('cart', JSON.stringify(updated))
-  }
-
-  const handleQuantityChange = (id: string, size: string | undefined, quantity: number) => {
-    if (quantity <= 0) {
-      handleRemoveItem(id, size)
-      return
-    }
-    const updated = cartItems.map(item =>
-      item.id === id && item.size === size ? { ...item, quantity } : item
-    )
-    setCartItems(updated)
-    localStorage.setItem('cart', JSON.stringify(updated))
-  }
 
   const handleCheckout = () => {
     if (!formData.email || !formData.name) {
@@ -51,14 +19,11 @@ export default function Cart() {
       return
     }
     alert(`Ordine inviato a ${formData.email}! Ti contatteremo per confermarlo.`)
-    setCartItems([])
-    localStorage.removeItem('cart')
+    clearCart()
     setFormData({ name: '', email: '', notes: '' })
   }
 
-  const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
-
-  if (cartItems.length === 0) {
+  if (cart.length === 0) {
     return (
       <div className="container section-padding">
         <motion.div
@@ -89,7 +54,7 @@ export default function Cart() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
         {/* Cart Items */}
         <div className="lg:col-span-2">
-          {cartItems.map((item) => (
+          {cart.map((item) => (
             // @ts-ignore
             <motion.div
               key={`${item.id}-${item.size}`}
@@ -106,20 +71,20 @@ export default function Cart() {
                 {/* Quantity Controls */}
                 <div className="flex items-center gap-3 mt-4">
                   <button
-                    onClick={() => handleQuantityChange(item.id, item.size, item.quantity - 1)}
+                    onClick={() => updateQuantity(item.id, item.quantity - 1, item.size)}
                     className="px-2 py-1 border border-border rounded hover:bg-background-alt"
                   >
                     −
                   </button>
                   <span className="w-6 text-center font-600">{item.quantity}</span>
                   <button
-                    onClick={() => handleQuantityChange(item.id, item.size, item.quantity + 1)}
+                    onClick={() => updateQuantity(item.id, item.quantity + 1, item.size)}
                     className="px-2 py-1 border border-border rounded hover:bg-background-alt"
                   >
                     +
                   </button>
                   <button
-                    onClick={() => handleRemoveItem(item.id, item.size)}
+                    onClick={() => removeFromCart(item.id, item.size)}
                     className="ml-auto p-2 hover:bg-red-50 rounded transition text-red-600"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -175,7 +140,7 @@ export default function Cart() {
             <div className="border-t border-border pt-4 mt-6">
               <div className="flex justify-between mb-4">
                 <span className="font-600">Totale:</span>
-                <span className="text-2xl font-serif text-accent">{formatCurrency(total)}</span>
+                <span className="text-2xl font-serif text-accent">{formatCurrency(totalPrice)}</span>
               </div>
 
               <button
