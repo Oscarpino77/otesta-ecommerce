@@ -99,12 +99,18 @@ export interface WishlistItem {
 
 // User Types
 export interface User {
-  id: string;
-  email: string;
-  full_name: string;
-  role: 'admin' | 'user';
-  created_at?: string;
-  updated_at?: string;
+  id: string
+  email: string
+  full_name: string
+  role: 'admin' | 'user'
+  created_at?: string
+  updated_at?: string
+}
+
+// Admin User Type (aligned with standard User interface)
+export interface AdminUser extends User {
+  role: 'admin' | 'super_admin'
+  name?: string
 }
 
 // Auth Types

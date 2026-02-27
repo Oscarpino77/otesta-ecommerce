@@ -1,19 +1,35 @@
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import type { User } from '@/types'
+import { STORAGE_KEYS, AUTH_CONFIG } from '@/constants'
 
 interface AuthContextType {
   user: User | null
+  isAuthenticated: boolean
   isLoading: boolean
   login: (email: string, password: string) => Promise<void>
-  logout: () => Promise<void>
+  logout: () => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    // Carica user da localStorage al mount
+    const storedUser = localStorage.getItem(STORAGE_KEYS.user)
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser))
+      } catch (error) {
+        console.error('Error loading user from storage:', error)
+        localStorage.removeItem(STORAGE_KEYS.user)
+      }
+    }
+    setIsLoading(false)
+  }, [])
 
   const login = async (email: string, password: string) => {
     setIsLoading(true)
@@ -26,19 +42,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         role: 'user',
       }
       setUser(mockUser)
-      localStorage.setItem('user', JSON.stringify(mockUser))
+      localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(mockUser))
     } finally {
       setIsLoading(false)
     }
   }
 
-  const logout = async () => {
+  const logout = () => {
     setUser(null)
-    localStorage.removeItem('user')
+    localStorage.removeItem(STORAGE_KEYS.user)
   }
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, login, logout }}>
       {children}
     </AuthContext.Provider>
   )

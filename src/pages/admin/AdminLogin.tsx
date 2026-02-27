@@ -7,23 +7,23 @@ export default function AdminLogin() {
   const [password, setPassword] = useState('admin123')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const { loginAdmin } = useAdminAuth()
+  const { login } = useAdminAuth()
   const navigate = useNavigate()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-    setIsLoading(true)
 
     try {
-      const success = await loginAdmin(email, password)
+      const success = await login(email, password)
       if (success) {
         navigate('/admin/dashboard')
       } else {
         setError('Credenziali non valide')
       }
-    } finally {
-      setIsLoading(false)
+    } catch (err) {
+      setError('Errore durante l\'accesso')
+      console.error('Login error:', err)
     }
   }
 

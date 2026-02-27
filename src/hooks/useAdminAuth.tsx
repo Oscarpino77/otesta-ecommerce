@@ -1,64 +1,71 @@
 import { createContext, useContext, useState, useEffect } from 'react'
-
-interface AdminUser {
-  id: string
-  email: string
-  name: string
-  role: 'admin' | 'super_admin'
-}
+import type { AdminUser } from '@/types'
+import { STORAGE_KEYS, AUTH_CONFIG } from '@/constants'
 
 interface AdminAuthContextType {
   admin: AdminUser | null
-  loginAdmin: (email: string, password: string) => Promise<boolean>
-  logoutAdmin: () => void
-  isAuthenticatedAdmin: boolean
+  isAuthenticated: boolean
+  isLoading: boolean
+  login: (email: string, password: string) => Promise<boolean>
+  logout: () => void
 }
 
 const AdminAuthContext = createContext<AdminAuthContextType | undefined>(undefined)
 
 export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
   const [admin, setAdmin] = useState<AdminUser | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Check if admin is already logged in from localStorage
-    const storedAdmin = localStorage.getItem('adminUser')
+    // Carica admin da localStorage al mount
+    const storedAdmin = localStorage.getItem(STORAGE_KEYS.admin)
     if (storedAdmin) {
       try {
         setAdmin(JSON.parse(storedAdmin))
-      } catch {
-        localStorage.removeItem('adminUser')
+      } catch (error) {
+        console.error('Error loading admin from storage:', error)
+        localStorage.removeItem(STORAGE_KEYS.admin)
       }
     }
+    setIsLoading(false)
   }, [])
 
-  const loginAdmin = async (email: string, password: string): Promise<boolean> => {
-    // Demo credentials for admin
-    if (email === 'admin@otesta.it' && password === 'admin123') {
-      const adminUser: AdminUser = {
-        id: 'admin-001',
-        email,
-        name: 'O.TESTA Admin',
-        role: 'super_admin',
+  const login = async (email: string, password: string): Promise<boolean> => {
+    setIsLoading(true)
+    try {
+      // Verifica credenziali admin
+      const { email: adminEmail, password: adminPassword } = AUTH_CONFIG.adminCredentials
+      
+      if (email === adminEmail && password === adminPassword) {
+        const adminUser: AdminUser = {
+          id: 'admin-001',
+          email,
+          full_name: 'O.TESTA Admin',
+          role: 'super_admin',
+        }
+        setAdmin(adminUser)
+        localStorage.setItem(STORAGE_KEYS.admin, JSON.stringify(adminUser))
+        return true
       }
-      setAdmin(adminUser)
-      localStorage.setItem('adminUser', JSON.stringify(adminUser))
-      return true
+      return false
+    } finally {
+      setIsLoading(false)
     }
-    return false
   }
 
-  const logoutAdmin = () => {
+  const logout = () => {
     setAdmin(null)
-    localStorage.removeItem('adminUser')
+    localStorage.removeItem(STORAGE_KEYS.admin)
   }
 
   return (
     <AdminAuthContext.Provider
       value={{
         admin,
-        loginAdmin,
-        logoutAdmin,
-        isAuthenticatedAdmin: !!admin,
+        isAuthenticated: !!admin,
+        isLoading,
+        login,
+        logout,
       }}
     >
       {children}
