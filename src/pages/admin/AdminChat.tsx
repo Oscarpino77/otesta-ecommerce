@@ -59,11 +59,63 @@ const mockMessages: ChatMessage[] = [
   { id: 'msg-3', sender: 'user', text: 'Quando arriva il mio ordine?', timestamp: '10:35' },
 ]
 
+// Conversazioni separate per ogni utente
+const conversationsByUser: Record<string, ChatMessage[]> = {
+  'user-1': [
+    { id: 'msg-1u1', sender: 'user', text: 'Buongiorno, vorrei chiedervi una cosa', timestamp: '10:30' },
+    {
+      id: 'msg-2u1',
+      sender: 'admin',
+      text: 'Buongiorno! Come possiamo aiutarvi?',
+      timestamp: '10:32',
+    },
+    { id: 'msg-3u1', sender: 'user', text: 'Quando arriva il mio ordine?', timestamp: '10:35' },
+    {
+      id: 'msg-4u1',
+      sender: 'admin',
+      text: 'Verifico lo stato della spedizione per voi. Un momento prego.',
+      timestamp: '10:37',
+    },
+  ],
+  'user-2': [
+    { id: 'msg-1u2', sender: 'user', text: 'Quale taglia mi consigliate per la camicia?', timestamp: '14:00' },
+    {
+      id: 'msg-2u2',
+      sender: 'admin',
+      text: 'Dipende dalla vostra corporatura. Quale è la vostra altezza e peso?',
+      timestamp: '14:02',
+    },
+    { id: 'msg-3u2', sender: 'user', text: '185cm, 82kg', timestamp: '14:05' },
+    {
+      id: 'msg-4u2',
+      sender: 'admin',
+      text: 'Vi consiglio la taglia L. Perfetta per la vostra struttura!',
+      timestamp: '14:07',
+    },
+  ],
+  'user-3': [
+    { id: 'msg-1u3', sender: 'user', text: 'Accettate pagamenti in rate?', timestamp: '09:00' },
+    {
+      id: 'msg-2u3',
+      sender: 'admin',
+      text: 'Sì, accettiamo pagamenti in 3-12 rate con i maggiori istituti finanziari.',
+      timestamp: '09:15',
+    },
+    { id: 'msg-3u3', sender: 'user', text: 'Perfetto, quali sono gli interessi?', timestamp: '09:20' },
+  ],
+}
+
 export default function AdminChat() {
   const [selectedUser, setSelectedUser] = useState<ChatUser | null>(mockUsers[0])
-  const [messages, setMessages] = useState(mockMessages)
+  const [messages, setMessages] = useState<ChatMessage[]>(conversationsByUser['user-1'])
   const [newMessage, setNewMessage] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
+
+  const handleSelectUser = (user: ChatUser) => {
+    setSelectedUser(user)
+    setMessages(conversationsByUser[user.id] || [])
+    setNewMessage('')
+  }
 
   const handleSendMessage = () => {
     if (!newMessage.trim()) return
@@ -76,6 +128,12 @@ export default function AdminChat() {
     }
 
     setMessages([...messages, message])
+    
+    // Update conversation for this user
+    if (selectedUser) {
+      conversationsByUser[selectedUser.id] = [...(conversationsByUser[selectedUser.id] || []), message]
+    }
+    
     setNewMessage('')
   }
 
@@ -112,7 +170,7 @@ export default function AdminChat() {
               {filteredUsers.map((user) => (
                 <button
                   key={user.id}
-                  onClick={() => setSelectedUser(user)}
+                  onClick={() => handleSelectUser(user)}
                   className={`w-full p-4 border-b text-left hover:bg-gray-50 transition ${
                     selectedUser?.id === user.id ? 'bg-accent bg-opacity-10' : ''
                   }`}

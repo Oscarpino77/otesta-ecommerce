@@ -157,10 +157,18 @@ export default function AdminOrders() {
                       <td className="py-4 px-6 text-sm text-gray-600">{order.date}</td>
                       <td className="py-4 px-6">
                         <div className="flex items-center justify-center gap-3">
-                          <button className="p-2 hover:bg-blue-100 rounded transition text-blue-600" title="Dettagli">
+                          <button 
+                            onClick={() => alert(`Ordine: ${order.orderNumber}\nCliente: ${order.customerName}\nTotale: €${order.total.toFixed(2)}`)}
+                            className="p-2 hover:bg-blue-100 rounded transition text-blue-600 hover:text-blue-800" 
+                            title="Dettagli"
+                          >
                             <Eye className="w-4 h-4" />
                           </button>
-                          <button className="p-2 hover:bg-green-100 rounded transition text-green-600" title="Chat">
+                          <button 
+                            onClick={() => alert(`Chat con ${order.customerName} per ordine ${order.orderNumber}`)}
+                            className="p-2 hover:bg-green-100 rounded transition text-green-600 hover:text-green-800" 
+                            title="Apri chat"
+                          >
                             <MessageSquare className="w-4 h-4" />
                           </button>
                         </div>

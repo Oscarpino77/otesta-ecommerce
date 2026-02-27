@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ShoppingBag } from 'lucide-react'
+import { ShoppingBag, Trash2 } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 
 interface CartItem {
@@ -14,12 +14,47 @@ interface CartItem {
 }
 
 export default function Cart() {
-  const [cartItems] = useState<CartItem[]>([])
+  const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     notes: '',
   })
+
+  useEffect(() => {
+    // Load cart from localStorage
+    const savedCart = JSON.parse(localStorage.getItem('cart') || '[]')
+    setCartItems(savedCart)
+  }, [])
+
+  const handleRemoveItem = (id: string, size?: string) => {
+    const updated = cartItems.filter(item => !(item.id === id && item.size === size))
+    setCartItems(updated)
+    localStorage.setItem('cart', JSON.stringify(updated))
+  }
+
+  const handleQuantityChange = (id: string, size: string | undefined, quantity: number) => {
+    if (quantity <= 0) {
+      handleRemoveItem(id, size)
+      return
+    }
+    const updated = cartItems.map(item =>
+      item.id === id && item.size === size ? { ...item, quantity } : item
+    )
+    setCartItems(updated)
+    localStorage.setItem('cart', JSON.stringify(updated))
+  }
+
+  const handleCheckout = () => {
+    if (!formData.email || !formData.name) {
+      alert('Compila nome ed email')
+      return
+    }
+    alert(`Ordine inviato a ${formData.email}! Ti contatteremo per confermarlo.`)
+    setCartItems([])
+    localStorage.removeItem('cart')
+    setFormData({ name: '', email: '', notes: '' })
+  }
 
   const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
 
@@ -57,7 +92,7 @@ export default function Cart() {
           {cartItems.map((item) => (
             // @ts-ignore
             <motion.div
-              key={item.id}
+              key={`${item.id}-${item.size}`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="flex gap-6 pb-6 border-b border-border mb-6"
@@ -67,6 +102,29 @@ export default function Cart() {
                 <h3 className="font-serif font-600 mb-1">{item.name}</h3>
                 {item.size && <p className="text-sm text-text-muted mb-2">Taglia: {item.size}</p>}
                 <p className="text-accent font-600">{formatCurrency(item.price)}</p>
+
+                {/* Quantity Controls */}
+                <div className="flex items-center gap-3 mt-4">
+                  <button
+                    onClick={() => handleQuantityChange(item.id, item.size, item.quantity - 1)}
+                    className="px-2 py-1 border border-border rounded hover:bg-background-alt"
+                  >
+                    −
+                  </button>
+                  <span className="w-6 text-center font-600">{item.quantity}</span>
+                  <button
+                    onClick={() => handleQuantityChange(item.id, item.size, item.quantity + 1)}
+                    className="px-2 py-1 border border-border rounded hover:bg-background-alt"
+                  >
+                    +
+                  </button>
+                  <button
+                    onClick={() => handleRemoveItem(item.id, item.size)}
+                    className="ml-auto p-2 hover:bg-red-50 rounded transition text-red-600"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             </motion.div>
           ))}
@@ -121,7 +179,8 @@ export default function Cart() {
               </div>
 
               <button
-                type="submit"
+                type="button"
+                onClick={handleCheckout}
                 className="w-full bg-primary text-white py-3 rounded font-serif hover:opacity-90 transition"
               >
                 Invia Ordine

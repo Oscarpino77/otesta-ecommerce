@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useSearchParams, Link } from 'react-router-dom'
+import { useSearchParams, Link, useNavigate } from 'react-router-dom'
 import { Heart, ArrowLeft } from 'lucide-react'
 import { motion } from 'framer-motion'
 import SizeSelector from '@/components/SizeSelector'
@@ -8,12 +8,56 @@ import { formatCurrency, CATEGORY_LABELS } from '@/lib/utils'
 
 export default function ProductDetail() {
   const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
   const productId = searchParams.get('id')
   const [selectedSize, setSelectedSize] = useState<string>('')
   const [quantity, setQuantity] = useState(1)
   const [isWishlisted, setIsWishlisted] = useState(false)
 
   const product = mockProducts.find((p) => p.id === productId)
+
+  const handleAddToCart = () => {
+    if (!product?.in_stock) {
+      alert('Prodotto esaurito')
+      return
+    }
+    if (product.sizes.length > 0 && !selectedSize) {
+      alert('Seleziona una taglia')
+      return
+    }
+
+    const cartItem = {
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      quantity,
+      size: selectedSize || undefined,
+      image: product.image_url,
+    }
+
+    // Get existing cart from localStorage
+    const existingCart = JSON.parse(localStorage.getItem('cart') || '[]')
+    
+    // Check if item already in cart
+    const existingItem = existingCart.find(
+      (item: any) => item.id === cartItem.id && item.size === cartItem.size
+    )
+    
+    if (existingItem) {
+      existingItem.quantity += cartItem.quantity
+    } else {
+      existingCart.push(cartItem)
+    }
+
+    localStorage.setItem('cart', JSON.stringify(existingCart))
+    alert(`✓ ${quantity} ${product.name} aggiunto al carrello!`)
+    setQuantity(1)
+    setSelectedSize('')
+  }
+
+  const handleRequestInfo = () => {
+    alert(`Richiesta di informazioni per: ${product?.name}\n\nTi contatteremo a breve!`)
+  }
 
   if (!product) {
     return (
@@ -123,13 +167,17 @@ export default function ProductDetail() {
 
           {/* CTA Buttons */}
           <button
+            onClick={handleAddToCart}
             disabled={!product.in_stock || (product.sizes.length > 0 && !selectedSize)}
             className="w-full bg-primary text-white py-4 rounded font-serif text-lg mb-4 hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Aggiungi alla Selezione
           </button>
 
-          <button className="w-full border-2 border-primary text-primary py-4 rounded font-serif text-lg hover:bg-primary hover:text-white transition">
+          <button 
+            onClick={handleRequestInfo}
+            className="w-full border-2 border-primary text-primary py-4 rounded font-serif text-lg hover:bg-primary hover:text-white transition"
+          >
             Richiedi Informazioni
           </button>
 

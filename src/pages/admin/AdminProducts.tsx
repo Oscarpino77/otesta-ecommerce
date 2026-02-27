@@ -1,10 +1,28 @@
 import { useState } from 'react'
-import { Trash2, Edit2, Plus, Search } from 'lucide-react'
+import { Trash2, Edit2, Plus, Search, X } from 'lucide-react'
 import { mockProducts } from '@/data/products'
 
 export default function AdminProducts() {
   const [products] = useState(mockProducts)
   const [searchQuery, setSearchQuery] = useState('')
+  const [showNewProductModal, setShowNewProductModal] = useState(false)
+  const [newProduct, setNewProduct] = useState({
+    name: '',
+    price: '',
+    category: 'suits',
+    description: '',
+    stock: '',
+  })
+
+  const handleCreateProduct = () => {
+    if (!newProduct.name || !newProduct.price || !newProduct.stock) {
+      alert('Compila tutti i campi obbligatori')
+      return
+    }
+    alert(`Prodotto "${newProduct.name}" creato! (Demo - non salvato in DB)`)
+    setNewProduct({ name: '', price: '', category: 'suits', description: '', stock: '' })
+    setShowNewProductModal(false)
+  }
 
   const filteredProducts = products.filter(
     (p) =>
@@ -26,7 +44,10 @@ export default function AdminProducts() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <h1 className="font-serif text-4xl">Gestione Prodotti</h1>
-          <button className="bg-accent text-white px-4 py-2 rounded-lg hover:opacity-90 transition flex items-center gap-2">
+          <button 
+            onClick={() => setShowNewProductModal(true)}
+            className="bg-accent text-white px-4 py-2 rounded-lg hover:opacity-90 transition flex items-center gap-2"
+          >
             <Plus className="w-4 h-4" />
             Nuovo Prodotto
           </button>
@@ -97,10 +118,22 @@ export default function AdminProducts() {
                     </td>
                     <td className="py-4 px-6">
                       <div className="flex items-center justify-center gap-3">
-                        <button className="p-2 hover:bg-blue-100 rounded transition text-blue-600">
+                        <button 
+                          onClick={() => alert(`Edit: ${product.name} (Demo - non salvato)`)}
+                          className="p-2 hover:bg-blue-100 rounded transition text-blue-600 hover:text-blue-800"
+                          title="Modifica"
+                        >
                           <Edit2 className="w-4 h-4" />
                         </button>
-                        <button className="p-2 hover:bg-red-100 rounded transition text-red-600">
+                        <button 
+                          onClick={() => {
+                            if (confirm(`Elimina ${product.name}?`)) {
+                              alert('Prodotto eliminato (Demo - non persistente)')
+                            }
+                          }}
+                          className="p-2 hover:bg-red-100 rounded transition text-red-600 hover:text-red-800"
+                          title="Elimina"
+                        >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
@@ -115,6 +148,100 @@ export default function AdminProducts() {
         {filteredProducts.length === 0 && (
           <div className="text-center py-12">
             <p className="text-gray-600">Nessun prodotto trovato</p>
+          </div>
+        )}
+
+        {/* New Product Modal */}
+        {showNewProductModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+              <div className="flex items-center justify-between p-6 border-b">
+                <h2 className="font-serif text-2xl">Nuovo Prodotto</h2>
+                <button
+                  onClick={() => setShowNewProductModal(false)}
+                  className="p-1 hover:bg-gray-100 rounded transition"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-600 mb-2">Nome Prodotto *</label>
+                  <input
+                    type="text"
+                    value={newProduct.name}
+                    onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
+                    placeholder="es. Completo Blu Navy"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-600 mb-2">Prezzo €  *</label>
+                    <input
+                      type="number"
+                      value={newProduct.price}
+                      onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
+                      placeholder="0.00"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-600 mb-2">Stock *</label>
+                    <input
+                      type="number"
+                      value={newProduct.stock}
+                      onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })}
+                      placeholder="0"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-600 mb-2">Categoria</label>
+                  <select
+                    value={newProduct.category}
+                    onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                  >
+                    <option value="suits">Completi</option>
+                    <option value="outerwear">Capispalla</option>
+                    <option value="shirts">Camicie</option>
+                    <option value="trousers">Pantaloni</option>
+                    <option value="accessories">Accessori</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-600 mb-2">Descrizione</label>
+                  <textarea
+                    value={newProduct.description}
+                    onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
+                    placeholder="Descrizione del prodotto..."
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 p-6 border-t bg-gray-50 rounded-b-lg">
+                <button
+                  onClick={() => setShowNewProductModal(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm font-600 hover:bg-gray-100 transition"
+                >
+                  Annulla
+                </button>
+                <button
+                  onClick={handleCreateProduct}
+                  className="flex-1 px-4 py-2 bg-accent text-white rounded-lg text-sm font-600 hover:opacity-90 transition"
+                >
+                  Crea Prodotto
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
