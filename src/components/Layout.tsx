@@ -1,11 +1,18 @@
-import { Outlet, Link } from 'react-router-dom'
+import { Outlet, Link, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
-import { Menu, X, Heart, ShoppingBag, User } from 'lucide-react'
+import { Menu, X, Heart, ShoppingBag, User, Lock } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
+import ChatWidget from '@/components/ChatWidget'
 
 export default function Layout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const { user } = useAuth()
+  const { user, login } = useAuth()
+  const navigate = useNavigate()
+
+  const handleLogin = () => {
+    navigate('/Account')
+    login('demo@otesta.it', 'demo123')
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -33,26 +40,29 @@ export default function Layout() {
             <Link to="/" className="text-sm hover:text-accent transition">
               Home
             </Link>
+            <Link to="/AdminDashboard" className="text-sm text-accent font-600 hover:opacity-80 transition">
+              Admin
+            </Link>
           </nav>
 
           {/* Icons */}
           <div className="flex items-center gap-4">
-            <button className="hover:text-accent transition">
+            <Link to="/Wishlist" className="hover:text-accent transition" title="Preferiti">
               <Heart className="w-5 h-5" />
-            </button>
-            <button className="hover:text-accent transition relative">
+            </Link>
+            <Link to="/Cart" className="hover:text-accent transition relative" title="Carrello">
               <ShoppingBag className="w-5 h-5" />
               <span className="absolute -top-2 -right-2 bg-accent text-primary text-xs rounded-full w-5 h-5 flex items-center justify-center">
                 0
               </span>
-            </button>
+            </Link>
             {user ? (
-              <Link to="/Account" className="hover:text-accent transition">
+              <Link to="/Account" className="hover:text-accent transition" title="Account">
                 <User className="w-5 h-5" />
               </Link>
             ) : (
-              <button className="text-sm hover:text-accent transition">
-                Accedi
+              <button onClick={handleLogin} className="hover:text-accent transition" title="Accedi">
+                <Lock className="w-5 h-5" />
               </button>
             )}
           </div>
@@ -64,12 +74,23 @@ export default function Layout() {
             <Link to="/Shop" className="block text-sm hover:text-accent">
               Negozio
             </Link>
-            <Link to="/Account" className="block text-sm hover:text-accent">
-              Account
+            <Link to="/Cart" className="block text-sm hover:text-accent">
+              Carrello
             </Link>
             <Link to="/Wishlist" className="block text-sm hover:text-accent">
               I Miei Desideri
             </Link>
+            <Link to="/Account" className="block text-sm hover:text-accent">
+              Account
+            </Link>
+            <Link to="/AdminDashboard" className="block text-sm text-accent font-600 hover:opacity-80">
+              Admin Dashboard
+            </Link>
+            {!user && (
+              <button onClick={handleLogin} className="block w-full text-left text-sm hover:text-accent">
+                Accedi
+              </button>
+            )}
           </div>
         )}
       </header>
@@ -99,13 +120,14 @@ export default function Layout() {
               <p className="text-sm text-gray-300">+39 02 1234 5678</p>
             </div>
 
-            {/* Visit */}
+            {/* Quick Links */}
             <div>
-              <h4 className="font-bold mb-4">Visita</h4>
+              <h4 className="font-bold mb-4">Navigazione</h4>
               <ul className="space-y-2 text-sm text-gray-300">
-                <li><a href="#" className="hover:text-accent transition">Negozio</a></li>
-                <li><a href="#" className="hover:text-accent transition">Chi Siamo</a></li>
-                <li><a href="#" className="hover:text-accent transition">Contatti</a></li>
+                <li><Link to="/Shop" className="hover:text-accent transition">Negozio</Link></li>
+                <li><Link to="/Cart" className="hover:text-accent transition">Carrello</Link></li>
+                <li><Link to="/Wishlist" className="hover:text-accent transition">Preferiti</Link></li>
+                <li><Link to="/AdminDashboard" className="hover:text-accent transition">Admin</Link></li>
               </ul>
             </div>
 
@@ -124,6 +146,9 @@ export default function Layout() {
           </div>
         </div>
       </footer>
+
+      {/* Chat Widget */}
+      <ChatWidget />
     </div>
   )
 }
