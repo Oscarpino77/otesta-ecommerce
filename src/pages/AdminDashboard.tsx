@@ -1,13 +1,20 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { BarChart3, Package, MessageSquare, Boxes } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
 import AnalyticsTab from '@/components/admin/AnalyticsTab'
 import ProductsTab from '@/components/admin/ProductsTab'
 import ChatTab from '@/components/admin/ChatTab'
 import InventoryTab from '@/components/admin/InventoryTab'
 
 export default function AdminDashboard() {
+  const { user } = useAuth()
   const [activeTab, setActiveTab] = useState('analytics')
+
+  // Only allow demo admin user
+  if (!user || user.email !== 'demo@otesta.it') {
+    return <Navigate to="/" replace />
+  }
 
   const tabs = [
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },

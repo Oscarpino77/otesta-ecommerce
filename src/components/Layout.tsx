@@ -34,15 +34,17 @@ export default function Layout() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
-            <Link to="/Shop" className="text-sm hover:text-accent transition">
-              Negozio
-            </Link>
             <Link to="/" className="text-sm hover:text-accent transition">
               Home
             </Link>
-            <Link to="/AdminDashboard" className="text-sm text-accent font-600 hover:opacity-80 transition">
-              Admin
+            <Link to="/Shop" className="text-sm hover:text-accent transition">
+              Negozio
             </Link>
+            {user?.email === 'demo@otesta.it' && (
+              <Link to="/AdminDashboard" className="text-sm text-accent font-600 hover:opacity-80 transition">
+                Admin
+              </Link>
+            )}
           </nav>
 
           {/* Icons */}
@@ -71,23 +73,28 @@ export default function Layout() {
         {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-border bg-white p-4 space-y-4">
-            <Link to="/Shop" className="block text-sm hover:text-accent">
+            <Link to="/" className="block text-sm hover:text-accent" onClick={() => setMobileMenuOpen(false)}>
+              Home
+            </Link>
+            <Link to="/Shop" className="block text-sm hover:text-accent" onClick={() => setMobileMenuOpen(false)}>
               Negozio
             </Link>
-            <Link to="/Cart" className="block text-sm hover:text-accent">
+            <Link to="/Cart" className="block text-sm hover:text-accent" onClick={() => setMobileMenuOpen(false)}>
               Carrello
             </Link>
-            <Link to="/Wishlist" className="block text-sm hover:text-accent">
+            <Link to="/Wishlist" className="block text-sm hover:text-accent" onClick={() => setMobileMenuOpen(false)}>
               I Miei Desideri
             </Link>
-            <Link to="/Account" className="block text-sm hover:text-accent">
+            <Link to="/Account" className="block text-sm hover:text-accent" onClick={() => setMobileMenuOpen(false)}>
               Account
             </Link>
-            <Link to="/AdminDashboard" className="block text-sm text-accent font-600 hover:opacity-80">
-              Admin Dashboard
-            </Link>
+            {user?.email === 'demo@otesta.it' && (
+              <Link to="/AdminDashboard" className="block text-sm text-accent font-600 hover:opacity-80" onClick={() => setMobileMenuOpen(false)}>
+                Admin Dashboard
+              </Link>
+            )}
             {!user && (
-              <button onClick={handleLogin} className="block w-full text-left text-sm hover:text-accent">
+              <button onClick={() => { handleLogin(); setMobileMenuOpen(false); }} className="block w-full text-left text-sm hover:text-accent">
                 Accedi
               </button>
             )}
