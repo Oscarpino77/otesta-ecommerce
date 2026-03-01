@@ -3,10 +3,11 @@ import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import ProductCard from '@/components/ProductCard'
 import CategoryMenu from '@/components/CategoryMenu'
-import { mockProducts } from '@/data/products'
+import { useProducts } from '@/hooks/useProducts'
 import { CATEGORY_LABELS } from '@/lib/utils'
 
 export default function Shop() {
+  const { products, isLoading } = useProducts()
   const [searchParams, setSearchParams] = useSearchParams()
   const [wishlist, setWishlist] = useState<string[]>([])
 
@@ -16,13 +17,13 @@ export default function Shop() {
   const sizes = searchParams.get('sizes')?.split(',') || []
 
   const filteredProducts = useMemo(() => {
-    return mockProducts.filter((product) => {
+    return products.filter((product) => {
       if (category && product.category !== category) return false
       if (product.price < priceMin || product.price > priceMax) return false
       if (sizes.length > 0 && !sizes.some((s) => product.sizes?.includes(s))) return false
       return true
     })
-  }, [category, priceMin, priceMax, sizes])
+  }, [products, category, priceMin, priceMax, sizes])
 
   const handleApplyFilters = (filters: {
     category?: string

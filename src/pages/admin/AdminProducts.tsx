@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react'
 import { Trash2, Edit2, Plus, Search, X, AlertCircle } from 'lucide-react'
-import { mockProducts } from '@/data/products'
+import { useProducts } from '@/hooks/useProducts'
 import type { Product } from '@/types'
 
-const ADMIN_PRODUCTS_STORAGE_KEY = 'admin_products'
-
 export default function AdminProducts() {
-  const [products, setProducts] = useState<Product[]>(mockProducts)
+  const { products, setProducts } = useProducts()
   const [searchQuery, setSearchQuery] = useState('')
   const [showNewProductModal, setShowNewProductModal] = useState(false)
   const [deleteNotif, setDeleteNotif] = useState<string | null>(null)
@@ -18,28 +16,10 @@ export default function AdminProducts() {
     stock: '',
   })
 
-  // Carica prodotti da localStorage se esistono
-  useEffect(() => {
-    const stored = localStorage.getItem(ADMIN_PRODUCTS_STORAGE_KEY)
-    if (stored) {
-      try {
-        setProducts(JSON.parse(stored))
-      } catch (e) {
-        console.error('Error loading products:', e)
-      }
-    }
-  }, [])
-
-  // Salva prodotti in localStorage
-  const saveProducts = (updatedProducts: Product[]) => {
-    setProducts(updatedProducts)
-    localStorage.setItem(ADMIN_PRODUCTS_STORAGE_KEY, JSON.stringify(updatedProducts))
-  }
-
   const handleDeleteProduct = (productId: string, productName: string) => {
     if (confirm(`Sei sicuro di voler eliminare "${productName}"?`)) {
       const updated = products.filter(p => p.id !== productId)
-      saveProducts(updated)
+      setProducts(updated)
       setDeleteNotif(`${productName} eliminato con successo`)
       setTimeout(() => setDeleteNotif(null), 3000)
     }
@@ -66,7 +46,7 @@ export default function AdminProducts() {
       stock_by_size: { S: 5, M: 5, L: 5, XL: 5 },
     }
     
-    saveProducts([...products, productToAdd])
+    setProducts([...products, productToAdd])
     setNewProduct({ name: '', price: '', category: 'suits', description: '', stock: '' })
     setShowNewProductModal(false)
     setDeleteNotif(`Prodotto "${newProduct.name}" creato con successo`)

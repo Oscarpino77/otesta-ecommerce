@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { TrendingUp, ShoppingBag, CheckCircle, DollarSign, MessageCircle } from 'lucide-react'
-import { mockProducts } from '@/data/products'
+import { useProducts } from '@/hooks/useProducts'
 import { formatCurrency } from '@/lib/utils'
 
 interface StatCard {
@@ -11,9 +11,11 @@ interface StatCard {
 }
 
 export default function AnalyticsTab() {
+  const { products } = useProducts()
+  
   // Calculate stats
-  const totalProducts = mockProducts.length
-  const totalRevenue = mockProducts.reduce((sum: number, p: any) => sum + p.price, 0) * 0.5 // Mock 50% sold
+  const totalProducts = products.length
+  const totalRevenue = products.reduce((sum: number, p: any) => sum + p.price, 0) * 0.5 // Mock 50% sold
   const totalOrders = Math.floor(totalProducts * 0.4)
   const completedOrders = Math.floor(totalOrders * 0.7)
   const avgOrderValue = totalRevenue / (totalOrders || 1)
@@ -111,7 +113,7 @@ export default function AnalyticsTab() {
         >
           <h3 className="font-serif text-xl mb-6">Top 5 Prodotti Venduti</h3>
           <div className="space-y-4">
-            {mockProducts.slice(0, 5).map((product: any, idx: number) => (
+            {products.slice(0, 5).map((product: any, idx: number) => (
               <div key={idx} className="flex items-center justify-between p-3 bg-background-alt rounded">
                 <span className="font-600 text-sm">{idx + 1}. {product.name}</span>
                 <span className="text-accent font-600">{Math.random() * 50 | 0} venduti</span>

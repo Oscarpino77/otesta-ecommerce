@@ -3,23 +3,24 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Heart, ArrowRight } from 'lucide-react'
 import ProductCard from '@/components/ProductCard'
-import { mockProducts } from '@/data/products'
+import { useProducts } from '@/hooks/useProducts'
 
 export default function Wishlist() {
-  const [wishlistItems] = useState<string[]>([mockProducts[0].id, mockProducts[2].id])
+  const { products } = useProducts()
+  const [wishlistItems] = useState<string[]>([products[0]?.id, products[2]?.id].filter(Boolean))
 
-  const products = mockProducts.filter((p) => wishlistItems.includes(p.id))
+  const wishlistProducts = products.filter((p) => wishlistItems.includes(p.id))
 
   return (
     <div className="container section-padding">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-12">
         <h1 className="font-serif text-5xl mb-4">I Miei Desideri</h1>
         <p className="text-text-secondary">
-          {products.length} prodotto{products.length !== 1 ? 'i' : ''} nella tua lista dei desideri
+          {wishlistProducts.length} prodotto{wishlistProducts.length !== 1 ? 'i' : ''} nella tua lista dei desideri
         </p>
       </motion.div>
 
-      {products.length === 0 ? (
+      {wishlistProducts.length === 0 ? (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -38,7 +39,7 @@ export default function Wishlist() {
         </motion.div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {products.map((product) => (
+          {wishlistProducts.map((product) => (
             <ProductCard
               key={product.id}
               product={product}

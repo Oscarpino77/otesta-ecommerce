@@ -4,19 +4,20 @@ import { Heart, ArrowLeft } from 'lucide-react'
 import { motion } from 'framer-motion'
 import SizeSelector from '@/components/SizeSelector'
 import { useCart } from '@/hooks/useCart'
-import { mockProducts } from '@/data/products'
+import { useProducts } from '@/hooks/useProducts'
 import { formatCurrency, CATEGORY_LABELS } from '@/lib/utils'
 
 export default function ProductDetail() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const { addToCart } = useCart()
+  const { products } = useProducts()
   const productId = searchParams.get('id')
   const [selectedSize, setSelectedSize] = useState<string>('')
   const [quantity, setQuantity] = useState(1)
   const [isWishlisted, setIsWishlisted] = useState(false)
 
-  const product = mockProducts.find((p) => p.id === productId)
+  const product = products.find((p) => p.id === productId)
 
   const handleAddToCart = () => {
     if (!product?.in_stock) {

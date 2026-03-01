@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Download, FileDown } from 'lucide-react'
-import { mockProducts } from '@/data/products'
+import { useProducts } from '@/hooks/useProducts'
 import { formatCurrency, CATEGORY_LABELS } from '@/lib/utils'
 
 export default function InventoryTab() {
