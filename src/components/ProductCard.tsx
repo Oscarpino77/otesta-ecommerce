@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Heart, Eye, ShoppingBag } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { Heart, Eye, ShoppingBag, X } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import type { Product } from '@/types'
 import { useCart } from '@/hooks/useCart'
 import { formatCurrency } from '@/lib/utils'
@@ -20,6 +20,8 @@ export default function ProductCard({
 }: ProductCardProps) {
   const { addToCart } = useCart()
   const [addedNotif, setAddedNotif] = useState(false)
+  const [showSizeSelector, setShowSizeSelector] = useState(false)
+  const [selectedSize, setSelectedSize] = useState<string | null>(null)
 
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -30,18 +32,31 @@ export default function ProductCard({
       return
     }
     
+    // Se il prodotto ha taglie, mostra il selector
+    if (product.sizes && product.sizes.length > 0) {
+      setShowSizeSelector(true)
+      return
+    }
+
+    // Altrimenti aggiungi direttamente
+    addProductToCart(undefined)
+  }
+
+  const addProductToCart = (size: string | undefined) => {
     const cartItem = {
       id: product.id,
       name: product.name,
       price: product.price,
       quantity: 1,
-      size: undefined,
+      size,
       image: product.image_url,
     }
 
     try {
       addToCart(cartItem)
       setAddedNotif(true)
+      setShowSizeSelector(false)
+      setSelectedSize(null)
       setTimeout(() => setAddedNotif(false), 2000)
     } catch (error) {
       console.error('Errore nell\'aggiunta al carrello:', error)
@@ -50,7 +65,71 @@ export default function ProductCard({
   }
 
   return (
-    <motion.div
+    <>
+      {/* Size Selector Modal */}
+      <AnimatePresence>
+        {showSizeSelector && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+            onClick={() => setShowSizeSelector(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white rounded-xl p-6 max-w-sm w-11/12 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="font-serif text-2xl text-primary">Seleziona Taglia</h3>
+                <button
+                  onClick={() => setShowSizeSelector(false)}
+                  className="p-1 hover:bg-gray-100 rounded-lg transition"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+
+              <p className="text-sm text-gray-600 mb-4">{product.name}</p>
+
+              <div className="grid grid-cols-4 gap-3 mb-6">
+                {product.sizes?.map((size) => (
+                  <button
+                    key={size}
+                    onClick={() => setSelectedSize(size)}
+                    className={`py-2 px-3 rounded-lg font-semibold transition ${
+                      selectedSize === size
+                        ? 'bg-accent text-primary'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {size}
+                  </button>
+                ))}
+              </div>
+
+              <motion.button
+                onClick={() => {
+                  if (selectedSize) {
+                    addProductToCart(selectedSize)
+                  }
+                }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                disabled={!selectedSize}
+                className="w-full bg-gradient-to-r from-accent to-yellow-500 text-primary font-bold py-3 rounded-lg hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Aggiungi al Carrello
+              </motion.button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <motion.div
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
@@ -159,5 +238,6 @@ export default function ProductCard({
         </motion.div>
       </Link>
     </motion.div>
+    </>
   )
 }
