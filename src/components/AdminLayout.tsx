@@ -5,11 +5,11 @@ import { useAdminAuth } from '@/hooks/useAdminAuth'
 
 export default function AdminLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const { admin, logoutAdmin } = useAdminAuth()
+  const { admin, logout } = useAdminAuth()
   const navigate = useNavigate()
 
   const handleLogout = () => {
-    logoutAdmin()
+    logout()
     navigate('/admin/login')
   }
 
@@ -50,7 +50,7 @@ export default function AdminLayout() {
           {/* Admin Info + Logout */}
           <div className="flex items-center gap-4">
             <div className="hidden sm:block text-right">
-              <p className="text-sm font-600">{admin?.name}</p>
+              <p className="text-sm font-600">{admin?.full_name}</p>
               <p className="text-xs text-gray-300">{admin?.email}</p>
             </div>
             <div className="flex items-center gap-2">

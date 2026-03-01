@@ -1,7 +1,9 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { LogOut, ShoppingBag } from 'lucide-react'
 import { formatCurrency, formatDate, ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } from '@/lib/utils'
+import { useAuth } from '@/hooks/useAuth'
 import type { Order } from '@/types'
 
 const mockOrders: Order[] = [
@@ -30,6 +32,13 @@ const mockOrders: Order[] = [
 export default function Account() {
   const [fullName, setFullName] = useState('Marco Rossi')
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null)
+  const { logout } = useAuth()
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    logout()
+    navigate('/')
+  }
 
   return (
     <div className="container section-padding">
@@ -70,7 +79,7 @@ export default function Account() {
             </button>
           </div>
 
-          <button className="w-full flex items-center justify-center gap-2 border-2 border-primary text-primary py-2 rounded hover:bg-primary hover:text-white transition">
+          <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 border-2 border-primary text-primary py-2 rounded hover:bg-primary hover:text-white transition">
             <LogOut className="w-4 h-4" />
             Logout
           </button>
