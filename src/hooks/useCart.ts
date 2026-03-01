@@ -42,8 +42,21 @@ export const useCart = () => {
       }
     }
 
+    // Ascolta il custom event per i cambiamenti nello STESSO tab
+    const handleCartUpdated = (e: any) => {
+      try {
+        setCart(e.detail.cart)
+      } catch (error) {
+        console.error('Error updating cart from custom event:', error)
+      }
+    }
+
     window.addEventListener('storage', handleStorageChange)
-    return () => window.removeEventListener('storage', handleStorageChange)
+    window.addEventListener('cartUpdated', handleCartUpdated)
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('cartUpdated', handleCartUpdated)
+    }
   }, [])
 
   // Funzione per salvare il carrello e notificare i listener
