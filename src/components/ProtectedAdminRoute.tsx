@@ -2,9 +2,9 @@ import { Navigate } from 'react-router-dom'
 import { useAdminAuth } from '@/hooks/useAdminAuth'
 
 export default function ProtectedAdminRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticatedAdmin } = useAdminAuth()
+  const { isAuthenticated } = useAdminAuth()
 
-  if (!isAuthenticatedAdmin) {
+  if (!isAuthenticated) {
     return <Navigate to="/admin/login" replace />
   }
 
