@@ -1,11 +1,15 @@
-import { useState } from 'react'
-import { Trash2, Edit2, Plus, Search, X } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Trash2, Edit2, Plus, Search, X, AlertCircle } from 'lucide-react'
 import { mockProducts } from '@/data/products'
+import type { Product } from '@/types'
+
+const ADMIN_PRODUCTS_STORAGE_KEY = 'admin_products'
 
 export default function AdminProducts() {
-  const [products] = useState(mockProducts)
+  const [products, setProducts] = useState<Product[]>(mockProducts)
   const [searchQuery, setSearchQuery] = useState('')
   const [showNewProductModal, setShowNewProductModal] = useState(false)
+  const [deleteNotif, setDeleteNotif] = useState<string | null>(null)
   const [newProduct, setNewProduct] = useState({
     name: '',
     price: '',
@@ -14,14 +18,59 @@ export default function AdminProducts() {
     stock: '',
   })
 
+  // Carica prodotti da localStorage se esistono
+  useEffect(() => {
+    const stored = localStorage.getItem(ADMIN_PRODUCTS_STORAGE_KEY)
+    if (stored) {
+      try {
+        setProducts(JSON.parse(stored))
+      } catch (e) {
+        console.error('Error loading products:', e)
+      }
+    }
+  }, [])
+
+  // Salva prodotti in localStorage
+  const saveProducts = (updatedProducts: Product[]) => {
+    setProducts(updatedProducts)
+    localStorage.setItem(ADMIN_PRODUCTS_STORAGE_KEY, JSON.stringify(updatedProducts))
+  }
+
+  const handleDeleteProduct = (productId: string, productName: string) => {
+    if (confirm(`Sei sicuro di voler eliminare "${productName}"?`)) {
+      const updated = products.filter(p => p.id !== productId)
+      saveProducts(updated)
+      setDeleteNotif(`${productName} eliminato con successo`)
+      setTimeout(() => setDeleteNotif(null), 3000)
+    }
+  }
+
   const handleCreateProduct = () => {
     if (!newProduct.name || !newProduct.price || !newProduct.stock) {
       alert('Compila tutti i campi obbligatori')
       return
     }
-    alert(`Prodotto "${newProduct.name}" creato! (Demo - non salvato in DB)`)
+    
+    const newId = String(Math.max(...products.map(p => parseInt(p.id)), 0) + 1)
+    const productToAdd: Product = {
+      id: newId,
+      name: newProduct.name,
+      price: parseFloat(newProduct.price),
+      category: newProduct.category as any,
+      description: newProduct.description,
+      material: 'Materiale da definire',
+      image_url: 'https://images.unsplash.com/photo-1556821552-5f63b1016170?w=400&h=500&fit=crop',
+      in_stock: true,
+      stock_quantity: parseInt(newProduct.stock),
+      sizes: ['S', 'M', 'L', 'XL'],
+      stock_by_size: { S: 5, M: 5, L: 5, XL: 5 },
+    }
+    
+    saveProducts([...products, productToAdd])
     setNewProduct({ name: '', price: '', category: 'suits', description: '', stock: '' })
     setShowNewProductModal(false)
+    setDeleteNotif(`Prodotto "${newProduct.name}" creato con successo`)
+    setTimeout(() => setDeleteNotif(null), 3000)
   }
 
   const filteredProducts = products.filter(
@@ -41,6 +90,14 @@ export default function AdminProducts() {
   return (
     <div className="bg-gray-50 min-h-screen">
       <div className="container py-8">
+        {/* Notification */}
+        {deleteNotif && (
+          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-3 text-green-800">
+            <AlertCircle className="w-5 h-5 flex-shrink-0" />
+            <span className="text-sm font-500">{deleteNotif}</span>
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <h1 className="font-serif text-4xl">Gestione Prodotti</h1>
@@ -119,18 +176,14 @@ export default function AdminProducts() {
                     <td className="py-4 px-6">
                       <div className="flex items-center justify-center gap-3">
                         <button 
-                          onClick={() => alert(`Edit: ${product.name} (Demo - non salvato)`)}
+                          onClick={() => alert(`Modifica: ${product.name} (Feature in arrivo)`)}
                           className="p-2 hover:bg-blue-100 rounded transition text-blue-600 hover:text-blue-800"
                           title="Modifica"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button 
-                          onClick={() => {
-                            if (confirm(`Elimina ${product.name}?`)) {
-                              alert('Prodotto eliminato (Demo - non persistente)')
-                            }
-                          }}
+                          onClick={() => handleDeleteProduct(product.id, product.name)}
                           className="p-2 hover:bg-red-100 rounded transition text-red-600 hover:text-red-800"
                           title="Elimina"
                         >
