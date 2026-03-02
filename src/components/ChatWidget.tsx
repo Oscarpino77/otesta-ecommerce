@@ -12,15 +12,42 @@ interface ChatMessage {
 
 export default function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false)
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: '1',
-      sender: 'admin',
-      text: 'Ciao! Come possiamo aiutarti?',
-      timestamp: new Date(),
-      replies: [],
-    },
-  ])
+  const [messages, setMessages] = useState<ChatMessage[]>([])
+    // Carica messaggi da localStorage all'avvio
+    useEffect(() => {
+      const stored = localStorage.getItem('chat_messages')
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored).map((m: any) => ({ ...m, timestamp: new Date(m.timestamp) }))
+          setMessages(parsed)
+        } catch {
+          setMessages([])
+        }
+      } else {
+        // Messaggio di benvenuto default
+        setMessages([
+          {
+            id: '1',
+            sender: 'admin',
+            text: 'Ciao! Come possiamo aiutarti?',
+            timestamp: new Date(),
+            replies: [],
+          },
+        ])
+      }
+    }, [])
+
+    // Salva messaggi su localStorage ogni volta che cambiano
+    useEffect(() => {
+      localStorage.setItem('chat_messages', JSON.stringify(messages))
+    }, [messages])
+
+    // Ascolta evento openChat (checkout)
+    useEffect(() => {
+      const handler = () => setIsOpen(true)
+      window.addEventListener('openChat', handler)
+      return () => window.removeEventListener('openChat', handler)
+    }, [])
   const [input, setInput] = useState('')
   const [selectedThread, setSelectedThread] = useState<ChatMessage | null>(null)
   const [threadReply, setThreadReply] = useState('')
@@ -45,22 +72,23 @@ export default function ChatWidget() {
       replies: [],
     }
 
-    setMessages([...messages, newMessage])
+    setMessages((prev) => {
+      const updated = [...prev, newMessage]
+      // Aggiorna anche l'ultimo ordine in localStorage
+      const orders = JSON.parse(localStorage.getItem('orders') || '[]')
+      if (orders.length > 0) {
+        // Trova l'ordine più recente (quello con id uguale all'ultimo messaggio admin, se esiste)
+        const lastOrder = orders[orders.length - 1]
+        lastOrder.messages = [...(lastOrder.messages || []), {
+          ...newMessage,
+          timestamp: newMessage.timestamp.toISOString ? newMessage.timestamp.toISOString() : newMessage.timestamp,
+        }]
+        orders[orders.length - 1] = lastOrder
+        localStorage.setItem('orders', JSON.stringify(orders))
+      }
+      return updated
+    })
     setInput('')
-
-    // Simulate admin response
-    setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: (Date.now() + 1).toString(),
-          sender: 'admin',
-          text: 'Grazie per il tuo messaggio! Ti risponderemo al più presto.',
-          timestamp: new Date(),
-          replies: [],
-        },
-      ])
-    }, 1000)
   }
 
   const handleOpenThread = (message: ChatMessage) => {
@@ -87,25 +115,6 @@ export default function ChatWidget() {
     setMessages(updatedMessages)
     setSelectedThread({ ...selectedThread, replies: [...(selectedThread.replies || []), reply] })
     setThreadReply('')
-
-    // Simulate admin thread response
-    setTimeout(() => {
-      const adminReply: ChatMessage = {
-        id: `reply-${Date.now()}`,
-        sender: 'admin',
-        text: 'Perfetto! Ti aiuterò con questo.',
-        timestamp: new Date(),
-      }
-
-      const finalMessages = updatedMessages.map(msg =>
-        msg.id === selectedThread.id
-          ? { ...msg, replies: [...(msg.replies || []), reply, adminReply] }
-          : msg
-      )
-
-      setMessages(finalMessages)
-      setSelectedThread({ ...selectedThread, replies: [...(selectedThread.replies || []), reply, adminReply] })
-    }, 800)
   }
 
   const unreadCount = messages.filter((m) => m.sender === 'admin').length
@@ -136,10 +145,8 @@ export default function ChatWidget() {
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-background-alt">
               {messages.map((msg) => (
-                <motion.div
+                <div
                   key={msg.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
                   className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <button
@@ -162,7 +169,7 @@ export default function ChatWidget() {
                       )}
                     </div>
                   </button>
-                </motion.div>
+                </div>
               ))}
               <div ref={messagesEndRef} />
             </div>
@@ -231,10 +238,8 @@ export default function ChatWidget() {
                   </div>
 
                   {selectedThread.replies.map((reply) => (
-                    <motion.div
+                    <div
                       key={reply.id}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
                       className={`p-2 rounded-lg text-xs border-l-2 ${reply.sender === 'user' ? 'bg-blue-50 border-blue-300' : 'bg-accent/10 border-accent'}`}
                     >
                       <p className="font-bold text-gray-600 mb-0.5">{reply.sender === 'user' ? 'Tu' : 'Admin'}</p>
@@ -242,7 +247,7 @@ export default function ChatWidget() {
                       <p className="text-gray-500 mt-1">
                         {reply.timestamp.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}
                       </p>
-                    </motion.div>
+                    </div>
                   ))}
                 </>
               )}
@@ -272,29 +277,21 @@ export default function ChatWidget() {
       </AnimatePresence>
 
       {/* Floating Button */}
-      <motion.button
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.95 }}
-        // @ts-ignore
+      <button
         onClick={() => setIsOpen(!isOpen)}
         className="relative w-14 h-14 bg-gradient-to-r from-accent to-yellow-500 text-primary rounded-full shadow-lg hover:shadow-xl transition flex items-center justify-center font-bold group"
       >
-        <motion.div
-          animate={isOpen ? { rotate: 45 } : { rotate: 0 }}
-          className="relative"
-        >
+        <span className="relative" style={{ display: 'inline-block', transform: isOpen ? 'rotate(45deg)' : 'none', transition: 'transform 0.2s' }}>
           <MessageCircle className="w-6 h-6" />
-        </motion.div>
+        </span>
         {unreadCount > 0 && (
-          <motion.span
-            animate={{ scale: [1, 1.2, 1] }}
-            transition={{ repeat: Infinity, duration: 2 }}
+          <span
             className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold"
           >
             {unreadCount}
-          </motion.span>
+          </span>
         )}
-      </motion.button>
+      </button>
     </div>
   )
 }

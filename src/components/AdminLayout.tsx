@@ -45,6 +45,9 @@ export default function AdminLayout() {
             <Link to="/admin/orders" className="text-sm hover:text-accent transition">
               Ordini
             </Link>
+            <Link to="/admin/payment-info" className="text-sm hover:text-accent transition">
+              Credenziali Pagamento
+            </Link>
           </nav>
 
           {/* Admin Info + Logout */}
@@ -94,6 +97,13 @@ export default function AdminLayout() {
               onClick={() => setMobileMenuOpen(false)}
             >
               Ordini
+            </Link>
+            <Link
+              to="/admin/payment-info"
+              className="block text-sm hover:text-accent"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Credenziali Pagamento
             </Link>
             <button
               onClick={() => {

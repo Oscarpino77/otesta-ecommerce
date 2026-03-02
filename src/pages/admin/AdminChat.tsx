@@ -1,181 +1,94 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Send, Search, X, MessageCircle, ChevronRight } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
-interface ChatUser {
+interface Order {
   id: string
   name: string
   email: string
-  lastMessage: string
-  timestamp: string
-  unread: number
-  avatar: string
+  notes: string
+  cart: any[]
+  total: number
+  status: string
+  created_at: string
+  messages: ChatMessage[]
 }
-
 interface ChatMessage {
   id: string
   sender: 'user' | 'admin'
   text: string
   timestamp: string
-  threadId?: string // ID del messaggio padre per i thread
-  replies?: ChatMessage[] // Risposte al messaggio
+  replies?: ChatMessage[]
 }
 
-const mockUsers: ChatUser[] = [
-  {
-    id: 'user-1',
-    name: 'Marco Rossi',
-    email: 'marco.rossi@example.com',
-    lastMessage: 'Quando arriva il mio ordine?',
-    timestamp: '5 min fa',
-    unread: 2,
-    avatar: '👨‍💼',
-  },
-  {
-    id: 'user-2',
-    name: 'Luca Bianchi',
-    email: 'luca.bianchi@example.com',
-    lastMessage: 'Quale taglia mi consigliate?',
-    timestamp: '1 ora fa',
-    unread: 0,
-    avatar: '👨',
-  },
-  {
-    id: 'user-3',
-    name: 'Francesco Verdi',
-    email: 'francesco.verdi@example.com',
-    lastMessage: 'Accettate pagamenti in rate?',
-    timestamp: '2 ore fa',
-    unread: 1,
-    avatar: '👴',
-  },
-]
 
-// Conversazioni separate per ogni utente - ora con supporto per thread
-const conversationsByUser: Record<string, ChatMessage[]> = {
-  'user-1': [
-    { 
-      id: 'msg-1u1', 
-      sender: 'user', 
-      text: 'Buongiorno, vorrei chiedervi una cosa', 
-      timestamp: '10:30',
-      replies: []
-    },
-    {
-      id: 'msg-2u1',
-      sender: 'admin',
-      text: 'Buongiorno! Come possiamo aiutarvi?',
-      timestamp: '10:32',
-      replies: []
-    },
-    { 
-      id: 'msg-3u1', 
-      sender: 'user', 
-      text: 'Quando arriva il mio ordine?', 
-      timestamp: '10:35',
-      replies: [
-        {
-          id: 'reply-1',
-          sender: 'admin',
-          text: 'Quale numero ordine hai?',
-          timestamp: '10:36',
-        },
-        {
-          id: 'reply-2',
-          sender: 'user',
-          text: 'Ordine #ORD-2026-001',
-          timestamp: '10:37',
-        },
-      ]
-    },
-    {
-      id: 'msg-4u1',
-      sender: 'admin',
-      text: 'Verifico lo stato della spedizione per voi.',
-      timestamp: '10:37',
-      replies: []
-    },
-  ],
-  'user-2': [
-    { 
-      id: 'msg-1u2', 
-      sender: 'user', 
-      text: 'Quale taglia mi consigliate per la camicia?', 
-      timestamp: '14:00',
-      replies: [
-        {
-          id: 'reply-1u2',
-          sender: 'admin',
-          text: 'Dipende dalla vostra corporatura. Quale è la vostra altezza?',
-          timestamp: '14:02',
-        },
-        {
-          id: 'reply-2u2',
-          sender: 'user',
-          text: '185cm',
-          timestamp: '14:05',
-        },
-      ]
-    },
-    {
-      id: 'msg-2u2',
-      sender: 'admin',
-      text: 'Vi consiglio la taglia L!',
-      timestamp: '14:07',
-      replies: []
-    },
-  ],
-  'user-3': [
-    { 
-      id: 'msg-1u3', 
-      sender: 'user', 
-      text: 'Accettate pagamenti in rate?', 
-      timestamp: '09:00',
-      replies: [
-        {
-          id: 'reply-1u3',
-          sender: 'admin',
-          text: 'Sì, accettiamo 3-12 rate con i maggiori istituti finanziari.',
-          timestamp: '09:15',
-        },
-      ]
-    },
-  ],
-}
 
 export default function AdminChat() {
-  const [selectedUser, setSelectedUser] = useState<ChatUser | null>(mockUsers[0])
-  const [messages, setMessages] = useState<ChatMessage[]>(conversationsByUser['user-1'])
+  const [orders, setOrders] = useState<Order[]>([])
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+  const [messages, setMessages] = useState<ChatMessage[]>([])
   const [newMessage, setNewMessage] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedThread, setSelectedThread] = useState<ChatMessage | null>(null)
   const [threadReply, setThreadReply] = useState('')
 
-  const handleSelectUser = (user: ChatUser) => {
-    setSelectedUser(user)
-    setMessages(conversationsByUser[user.id] || [])
+  // Carica ordini da localStorage
+  useEffect(() => {
+    const stored = localStorage.getItem('orders')
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored)
+        setOrders(parsed)
+      } catch {
+        setOrders([])
+      }
+    }
+  }, [])
+
+  // Aggiorna messaggi quando si seleziona un ordine
+  useEffect(() => {
+    if (selectedOrder) {
+      setMessages(selectedOrder.messages.map((m) => ({ ...m, timestamp: m.timestamp })))
+    } else {
+      setMessages([])
+    }
+  }, [selectedOrder])
+
+  // Salva messaggi su localStorage quando cambiano
+  useEffect(() => {
+    if (selectedOrder) {
+      const updatedOrders = orders.map((o) =>
+        o.id === selectedOrder.id ? { ...o, messages } : o
+      )
+      setOrders(updatedOrders)
+      localStorage.setItem('orders', JSON.stringify(updatedOrders))
+    }
+  }, [messages])
+
+  // Seleziona ordine
+  const handleSelectOrder = (order: Order) => {
+    setSelectedOrder(order)
     setNewMessage('')
     setSelectedThread(null)
   }
 
   const handleSendMessage = () => {
     if (!newMessage.trim()) return
-
     const message: ChatMessage = {
       id: `msg-${Date.now()}`,
       sender: 'admin',
       text: newMessage,
-      timestamp: new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }),
+      timestamp: new Date().toISOString(),
       replies: [],
     }
-
-    const updatedMessages = [...messages, message]
-    setMessages(updatedMessages)
-    
-    if (selectedUser) {
-      conversationsByUser[selectedUser.id] = updatedMessages
-    }
-    
+    setMessages((prev) => {
+      const updated = [...prev, message]
+      // Se l'ordine selezionato è l'ultimo, aggiorna anche chat_messages
+      if (orders.length > 0 && selectedOrder && orders[orders.length - 1].id === selectedOrder.id) {
+        localStorage.setItem('chat_messages', JSON.stringify(updated))
+      }
+      return updated
+    })
     setNewMessage('')
   }
 
@@ -186,34 +99,27 @@ export default function AdminChat() {
 
   const handleAddThreadReply = () => {
     if (!threadReply.trim() || !selectedThread) return
-
     const reply: ChatMessage = {
       id: `reply-${Date.now()}`,
       sender: 'admin',
       text: threadReply,
-      timestamp: new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }),
+      timestamp: new Date().toISOString(),
     }
-
-    const updatedMessages = messages.map(msg => 
-      msg.id === selectedThread.id 
+    const updatedMessages = messages.map(msg =>
+      msg.id === selectedThread.id
         ? { ...msg, replies: [...(msg.replies || []), reply] }
         : msg
     )
-    
     setMessages(updatedMessages)
     setSelectedThread({ ...selectedThread, replies: [...(selectedThread.replies || []), reply] })
-    
-    if (selectedUser) {
-      conversationsByUser[selectedUser.id] = updatedMessages
-    }
-    
     setThreadReply('')
   }
 
-  const filteredUsers = mockUsers.filter(
-    (user) =>
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredOrders = orders.filter(
+    (order) =>
+      order.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order.id.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   return (
@@ -240,26 +146,22 @@ export default function AdminChat() {
 
             {/* Users */}
             <div className="flex-1 overflow-y-auto">
-              {filteredUsers.map((user) => (
+              {filteredOrders.map((order) => (
                 <button
-                  key={user.id}
-                  onClick={() => handleSelectUser(user)}
+                  key={order.id}
+                  onClick={() => handleSelectOrder(order)}
                   className={`w-full p-4 border-b text-left hover:bg-gray-50 transition ${
-                    selectedUser?.id === user.id ? 'bg-accent bg-opacity-10' : ''
+                    selectedOrder?.id === order.id ? 'bg-accent bg-opacity-10' : ''
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="text-2xl">{user.avatar}</div>
+                    <div className="text-2xl">🛒</div>
                     <div className="flex-1">
-                      <p className="font-600 text-sm">{user.name}</p>
-                      <p className="text-xs text-gray-500">{user.email}</p>
-                      <p className="text-xs text-gray-600 mt-1 truncate">{user.lastMessage}</p>
+                      <p className="font-600 text-sm">{order.name}</p>
+                      <p className="text-xs text-gray-500">{order.email}</p>
+                      <p className="text-xs text-gray-600 mt-1 truncate">Ordine: {order.id}</p>
+                      <p className="text-xs text-gray-600 mt-1">Stato: <span className="font-bold">{order.status.replace(/_/g, ' ')}</span></p>
                     </div>
-                    {user.unread > 0 && (
-                      <div className="bg-red-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
-                        {user.unread}
-                      </div>
-                    )}
                   </div>
                 </button>
               ))}
@@ -269,21 +171,33 @@ export default function AdminChat() {
           {/* Chat Window with Thread Panel */}
           <div className="lg:col-span-2 flex gap-4">
             {/* Main Chat */}
-            {selectedUser ? (
+            {selectedOrder ? (
               <div className="flex-1 bg-white rounded-lg shadow flex flex-col">
                 {/* Header */}
                 <div className="p-4 border-b">
-                  <p className="font-serif text-lg font-600">{selectedUser.name}</p>
-                  <p className="text-xs text-gray-500">{selectedUser.email}</p>
+                  <p className="font-serif text-lg font-600">{selectedOrder.name}</p>
+                  <p className="text-xs text-gray-500">{selectedOrder.email}</p>
+                  <p className="text-xs text-gray-600 mt-1">Ordine: <span className="font-bold">{selectedOrder.id}</span></p>
+                  <p className="text-xs text-gray-600 mt-1">Stato: <span className="font-bold">{selectedOrder.status.replace(/_/g, ' ')}</span></p>
+                  <button
+                    className="mt-2 px-3 py-1 bg-accent text-white rounded text-xs hover:bg-accent/80"
+                    onClick={() => {
+                      const next = selectedOrder.status === 'in_attesa_pagamento' ? 'pagato' : selectedOrder.status === 'pagato' ? 'spedito' : 'completato'
+                      const updated = { ...selectedOrder, status: next }
+                      setSelectedOrder(updated)
+                      setOrders(orders.map(o => o.id === updated.id ? updated : o))
+                      localStorage.setItem('orders', JSON.stringify(orders.map(o => o.id === updated.id ? updated : o)))
+                    }}
+                  >
+                    Avanza stato ordine
+                  </button>
                 </div>
 
                 {/* Messages */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-3">
                   {messages.map((msg) => (
-                    <motion.div
+                    <div
                       key={msg.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
                       className={`flex ${msg.sender === 'admin' ? 'justify-end' : 'justify-start'}`}
                     >
                       <div
@@ -297,7 +211,7 @@ export default function AdminChat() {
                         <p className="text-sm">{msg.text}</p>
                         <div className="flex items-center justify-between mt-2 gap-3">
                           <p className={`text-xs ${msg.sender === 'admin' ? 'text-white/70' : 'text-gray-600'}`}>
-                            {msg.timestamp}
+                            {new Date(msg.timestamp).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}
                           </p>
                           {msg.replies && msg.replies.length > 0 && (
                             <span className={`text-xs font-bold ${msg.sender === 'admin' ? 'text-white/90' : 'text-accent'}`}>
@@ -306,7 +220,7 @@ export default function AdminChat() {
                           )}
                         </div>
                       </div>
-                    </motion.div>
+                    </div>
                   ))}
                 </div>
 
@@ -335,10 +249,7 @@ export default function AdminChat() {
             {/* Thread Panel */}
             <AnimatePresence>
               {selectedThread && (
-                <motion.div
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
+                <div
                   className="w-80 bg-white rounded-lg shadow flex flex-col border-l-4 border-accent overflow-hidden"
                 >
                   {/* Thread Header */}
@@ -363,7 +274,7 @@ export default function AdminChat() {
                         <span className="text-2xl">{selectedThread.sender === 'admin' ? '👔' : '👤'}</span>
                         <div className="flex-1">
                           <p className="text-xs font-bold text-gray-600 mb-1">
-                            {selectedThread.sender === 'admin' ? 'Admin' : selectedUser?.name}
+                            {selectedThread.sender === 'admin' ? 'Admin' : selectedOrder?.name}
                           </p>
                           <p className="text-sm text-gray-900">{selectedThread.text}</p>
                           <p className="text-xs text-gray-500 mt-2">{selectedThread.timestamp}</p>
@@ -382,23 +293,21 @@ export default function AdminChat() {
 
                     {/* Thread Replies */}
                     {selectedThread.replies?.map((reply) => (
-                      <motion.div
+                      <div
                         key={reply.id}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
                         className={`p-3 rounded-lg ${reply.sender === 'admin' ? 'bg-accent/10 border-l-2 border-accent' : 'bg-blue-50 border-l-2 border-blue-300'}`}
                       >
                         <div className="flex gap-2">
                           <span className="text-lg">{reply.sender === 'admin' ? '👔' : '👤'}</span>
                           <div className="flex-1">
                             <p className="text-xs font-bold text-gray-600 mb-1">
-                              {reply.sender === 'admin' ? 'Admin' : selectedUser?.name}
+                              {reply.sender === 'admin' ? 'Admin' : selectedOrder?.name}
                             </p>
                             <p className="text-sm text-gray-800">{reply.text}</p>
                             <p className="text-xs text-gray-500 mt-1">{reply.timestamp}</p>
                           </div>
                         </div>
-                      </motion.div>
+                      </div>
                     ))}
                   </div>
 
@@ -421,7 +330,7 @@ export default function AdminChat() {
                       </button>
                     </div>
                   </div>
-                </motion.div>
+                </div>
               )}
             </AnimatePresence>
           </div>

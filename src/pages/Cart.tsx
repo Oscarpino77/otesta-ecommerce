@@ -1,27 +1,49 @@
 import { useState } from 'react'
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ShoppingBag, Trash2 } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 import { useCart } from '@/hooks/useCart'
+// @ts-ignore
+import { openChatWithOrder } from '@/lib/chatUtils'
 
 export default function Cart() {
   const { cart, removeFromCart, updateQuantity, clearCart, totalPrice } = useCart()
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    address: '',
     notes: '',
   })
 
   const handleCheckout = () => {
-    if (!formData.email || !formData.name) {
-      alert('Compila nome ed email')
+    if (!formData.email || !formData.name || !formData.address) {
+      alert('Compila nome, email e indirizzo')
       return
     }
-    alert(`Ordine inviato a ${formData.email}! Ti contatteremo per confermarlo.`)
+    // Simula invio ordine e apertura chat con messaggio automatico
+    openChatWithOrder({
+      name: formData.name,
+      email: formData.email,
+      address: formData.address,
+      notes: formData.notes,
+      cart,
+      total: totalPrice,
+    })
     clearCart()
-    setFormData({ name: '', email: '', notes: '' })
+    setFormData({ name: '', email: '', address: '', notes: '' })
   }
+            <div>
+              <label className="block text-sm font-600 mb-2">Indirizzo di spedizione</label>
+              <input
+                type="text"
+                value={formData.address}
+                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                className="w-full p-2 border border-border rounded bg-white"
+                required
+              />
+            </div>
 
   if (cart.length === 0) {
     return (
@@ -105,6 +127,7 @@ export default function Cart() {
           <h2 className="font-serif text-2xl mb-6">Riepilogo Ordine</h2>
 
           <form className="space-y-4">
+
             <div>
               <label className="block text-sm font-600 mb-2">Nome Completo</label>
               <input
@@ -122,6 +145,17 @@ export default function Cart() {
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                className="w-full p-2 border border-border rounded bg-white"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-600 mb-2">Indirizzo di spedizione</label>
+              <input
+                type="text"
+                value={formData.address}
+                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                 className="w-full p-2 border border-border rounded bg-white"
                 required
               />
@@ -146,9 +180,17 @@ export default function Cart() {
               <button
                 type="button"
                 onClick={handleCheckout}
-                className="w-full bg-primary text-white py-3 rounded font-serif hover:opacity-90 transition"
+                className="w-full bg-primary text-white py-3 rounded font-serif hover:opacity-90 transition mb-2"
               >
-                Invia Ordine
+                Procedi al pagamento
+              </button>
+              <div className="text-xs text-gray-500 text-center mb-2">Oppure chiedi informazioni in chat</div>
+              <button
+                type="button"
+                onClick={() => window.dispatchEvent(new CustomEvent('openChat'))}
+                className="w-full bg-accent text-primary py-2 rounded font-serif hover:opacity-90 transition"
+              >
+                Fai una domanda in chat
               </button>
             </div>
           </form>

@@ -16,6 +16,7 @@ import AdminDashboard from '@/pages/admin/AdminDashboard'
 import AdminChat from '@/pages/admin/AdminChat'
 import AdminProducts from '@/pages/admin/AdminProducts'
 import AdminOrders from '@/pages/admin/AdminOrders'
+import AdminPaymentInfo from '@/pages/admin/AdminPaymentInfo'
 import ProtectedAdminRoute from '@/components/ProtectedAdminRoute'
 
 const queryClient = new QueryClient()
@@ -51,6 +52,7 @@ function App() {
                 <Route path="chat" element={<AdminChat />} />
                 <Route path="products" element={<AdminProducts />} />
                 <Route path="orders" element={<AdminOrders />} />
+                <Route path="payment-info" element={<AdminPaymentInfo />} />
               </Route>
 
               {/* REDIRECT /admin to /admin/login if not authenticated */}
