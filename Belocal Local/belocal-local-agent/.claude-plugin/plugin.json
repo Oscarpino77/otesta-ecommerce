@@ -1,0 +1,9 @@
+{
+  "name": "belocal-local-agent",
+  "version": "0.1.0",
+  "description": "Custom local agent for Belocal Local workflows and development tasks",
+  "author": {
+    "name": "Oscar Sette"
+  },
+  "license": "MIT"
+}

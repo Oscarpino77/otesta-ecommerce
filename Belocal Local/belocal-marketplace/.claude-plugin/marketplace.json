@@ -1,0 +1,27 @@
+{
+  "name": "belocal-local-marketplace",
+  "owner": {
+    "name": "Oscar Sette",
+    "email": "oscar@example.com",
+    "url": "https://local.belocal"
+  },
+  "metadata": {
+    "description": "Local marketplace for Belocal custom agents",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "belocal-local-agent",
+      "source": "./plugins/belocal-local-agent",
+      "description": "Custom local agent for Belocal Local workflows and development tasks",
+      "version": "0.1.0",
+      "author": {
+        "name": "Oscar Sette",
+        "email": "oscar@example.com"
+      },
+      "homepage": "https://local.belocal",
+      "license": "MIT",
+      "category": "development"
+    }
+  ]
+}
